@@ -1,0 +1,207 @@
+{
+  "name": "Email Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -256,
+        -64
+      ],
+      "id": "3896a86c-2a38-4bca-be5e-195fa42485ef",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', `the email address we are sending to`, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "emailType": "text",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Nate"
+        }
+      },
+      "id": "14ea8856-00d6-4201-90c6-4740fab4fa5a",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        192
+      ],
+      "webhookId": "68f9e20c-a83c-4cc1-952e-467d6d8476ee",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "T38bpfZRuJpN5fRx",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": "={{ $fromAI(\"limit\") }}",
+        "simple": false,
+        "filters": {
+          "sender": "={{ $fromAI(\"senderEmail\") }}"
+        },
+        "options": {}
+      },
+      "id": "e2ff2053-bb63-41b0-a364-80855db07dd9",
+      "name": "Get Messages",
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        400,
+        160
+      ],
+      "webhookId": "298bfb23-109f-4b75-bd46-a4e72f2a8854",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "T38bpfZRuJpN5fRx",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query }}",
+        "options": {
+          "systemMessage": "=# System Role\nYou are an intelligent email assistant specifically designed to manage Gmail actions. Your primary role is to assist in composing and replying to emails, ensuring all emails are signed off professionally and consistently from \"Zainab\" without using placeholders.\n\n# Task Specification\nYour task is to finalize and sign off all emails with \"Zainab\" as the sender. Ensure the body of the email is clear, professional, and without placeholders such as [name], [company], or [placeholder text]. Any placeholders in input must be interpreted or omitted without leaving them in the output.\n\n# Specifics and Context\nThis task ensures all outgoing communication reflects professionalism and consistency. Signing off emails correctly as \"Zainab\" avoids confusion and builds trust with recipients. By removing placeholders and finalizing content, you enhance communication effectiveness.\n\n# Reminders\n- Always remove placeholders from email drafts. Replace with suitable text or omit if no information is available.  \n- Sign off every email as \"Zainab\" using a professional closing (e.g., \"Best regards,\" or \"Thanks,\").  \n- Ensure all language is clear, polished, and error-free.  \n"
+        }
+      },
+      "id": "0977e49a-1a9f-4e32-87a9-b9667154467f",
+      "name": "Email Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        48,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "a94a061c-25b8-48b5-a417-07691c9b34f8",
+      "name": "OpenAI Chat Model1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        192
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "JFV8h8FLMK6dxzrL",
+          "name": "OpenAi account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "94af4a68-e0d7-497b-9186-63769d408b26",
+              "name": "response",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "05a49163-0f55-41cd-8c56-02b4aaeb486d",
+      "name": "Response1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        560,
+        -64
+      ]
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "query": "send email to ahmed.kaleem@zigron.com with subject 'late' and body 'might get a bit late today!'"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Send Email": {
+      "ai_tool": [
+        [
+          {
+            "node": "Email Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Messages": {
+      "ai_tool": [
+        [
+          {
+            "node": "Email Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Agent": {
+      "main": [
+        [
+          {
+            "node": "Response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Email Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c092e086-8e5f-49d9-83d0-b222f2890f06",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8707be5561da15d1b4c629faa0e4a9a6fdd4bfa66f8eb97220cf29c3050d7d3f"
+  },
+  "id": "j5C9OYo55On8LEGj",
+  "tags": []
+}
