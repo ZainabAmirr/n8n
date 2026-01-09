@@ -1,0 +1,343 @@
+{
+  "name": "Parallelization",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.message }}",
+        "options": {
+          "systemMessage": "Analyze the emotional tone of the incoming text. Categorize it as positive, negative, neutral, or mixed. Provide a brief explanation."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        112,
+        304
+      ],
+      "id": "d385c6ea-cd1a-4e37-a4c4-a21cbae3a55d",
+      "name": "Emotion Agent"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Analyze the intent behind this text. Classify it as informational, persuasive, aggressive, or neutral. Provide reasoning."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        112,
+        544
+      ],
+      "id": "9cd1822c-d86a-48bf-ad1c-51890a61c17a",
+      "name": "Intent Agent"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Analyze this text for potential biases. Identify if it exhibits political, gender, racial, or other biases. Suggest ways to make it more neutral."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        112,
+        800
+      ],
+      "id": "bf16d8ab-7390-456b-aae3-5b9378f355b7",
+      "name": "Bias Agent"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "output"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        544
+      ],
+      "id": "afed7f06-8d7e-4b6a-85e5-0aea2b16578f",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the analysis: \n\n{{ $json.output }}",
+        "options": {
+          "systemMessage": "Merge the incoming emotional tone, intent, and bias analysis into a structured report. Ensure it is clear, concise, and actionable."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1184,
+        544
+      ],
+      "id": "07eca436-3634-4184-ac3d-6e415aeb72d4",
+      "name": "Final Agent"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "https://docs.google.com/document/d/1Gx7rC1SwT9FoDbHmi5lKWI3MgOT12gWOUasSzEcdbTM/edit?tab=t.0",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{ $json.output }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        1504,
+        544
+      ],
+      "id": "72e6c46d-dde3-427b-957c-c8fd6e22b8c2",
+      "name": "Write to Docs",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "Qxl68vGBqLrBJmEl",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -224,
+        880
+      ],
+      "id": "e45d30af-1808-43cd-93b4-8e46870d2a23",
+      "name": "4o mini",
+      "credentials": {
+        "openAiApi": {
+          "id": "JFV8h8FLMK6dxzrL",
+          "name": "OpenAi account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1168,
+        784
+      ],
+      "id": "103cec07-9da5-447c-b0b4-55694980cf1d",
+      "name": "4o_mini",
+      "credentials": {
+        "openAiApi": {
+          "id": "JFV8h8FLMK6dxzrL",
+          "name": "OpenAi account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        720,
+        544
+      ],
+      "id": "e09e8cbd-47ff-426b-831b-a5e53d5c7a85",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "f633d55d-10d5-48b2-9934-796983267ac7",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -256,
+        352
+      ],
+      "id": "b539019c-8942-4f9c-9f6a-e29bf2556e44",
+      "name": "Webhook",
+      "webhookId": "f633d55d-10d5-48b2-9934-796983267ac7"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1728,
+        544
+      ],
+      "id": "b66a0c61-1368-44ca-9f10-c25799f97de8",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Emotion Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intent Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Bias Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Final Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final Agent": {
+      "main": [
+        [
+          {
+            "node": "Write to Docs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4o mini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Intent Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Emotion Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Bias Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4o_mini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Final Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write to Docs": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Emotion Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5a8a2ec0-85bd-4f3a-91dc-04f3c611031a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8707be5561da15d1b4c629faa0e4a9a6fdd4bfa66f8eb97220cf29c3050d7d3f"
+  },
+  "id": "YyiNxqaIfUOIssq8",
+  "tags": []
+}
