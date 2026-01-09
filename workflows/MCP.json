@@ -1,0 +1,338 @@
+{
+  "name": "MCP",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        -80
+      ],
+      "id": "be0c930f-655a-487c-b900-43855908461f",
+      "name": "When chat message received",
+      "webhookId": "54ea8a65-6e76-4a08-b8f2-011db960c2a0"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are an AI agent that manages Gmail through MCP tools. Your role is to interpret user commands and trigger the correct action or actions using the MCP client.\n\nAvailable actions:\n1.Send an email\n2.Fetch emails (retrieve email addresses using names through the get email node with operation get many)\n3.Mark emails as unread\n4.Mark emails as read\n5.Add labels to emails\n6.Remove labels from emails\n\nProperly structure the emails that are to be sent.\nUnderstand the user's intent and respond with the correct tool to trigger. \nIf information is missing, ask for it or use recent context. \nBe concise, accurate, and only respond with actionable instructions.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        560,
+        -176
+      ],
+      "id": "c72af490-9339-4541-923e-d08731bb7e54",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        592,
+        48
+      ],
+      "id": "093fba1a-9bd1-475e-a7d1-08438765d064",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "JFV8h8FLMK6dxzrL",
+          "name": "OpenAi account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "appendAttribution": true
+        }
+      },
+      "id": "c48ed583-c592-450a-825a-44c12cacd170",
+      "name": "Gmail - Send Email",
+      "type": "n8n-nodes-base.gmailTool",
+      "position": [
+        704,
+        608
+      ],
+      "webhookId": "3000cd3a-79cd-4af9-949c-6f04955a725a",
+      "typeVersion": 2.1,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "T38bpfZRuJpN5fRx",
+          "name": "Gmail account"
+        }
+      },
+      "notes": "📧 SEND EMAIL\n\nCompose and send emails through AI commands. The AI extracts recipient, subject, and message content from natural language requests.\n\nUse Cases:\n• \"Send an email to john@example.com about the meeting\"\n• \"Compose a follow-up email to the client\"\n• \"Send a thank you note to the team\"\n\nAI Parameters:\n• To: Email recipient(s)\n• Subject: Email subject line\n• Message: Email body content"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "simple": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Simplify', ``, 'boolean') }}",
+        "filters": {},
+        "options": {}
+      },
+      "id": "def92184-2ff1-4acd-9a6d-b1510ea0a355",
+      "name": "Gmail - Get Email",
+      "type": "n8n-nodes-base.gmailTool",
+      "position": [
+        352,
+        608
+      ],
+      "webhookId": "305f98e4-e58c-486d-b66e-eb67fb0201a4",
+      "typeVersion": 2.1,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "T38bpfZRuJpN5fRx",
+          "name": "Gmail account"
+        }
+      },
+      "notes": "📖 READ EMAIL\n\nRetrieve and read email content by message ID. Perfect for AI to analyze, summarize, or extract information from specific emails.\n\nUse Cases:\n• \"Read the latest email from Sarah\"\n• \"Get the content of message ID 123456\"\n• \"Show me the email about the project update\"\n\nReturns:\n• Full email content\n• Headers and metadata\n• Attachments information\n• Thread context"
+    },
+    {
+      "parameters": {
+        "operation": "markAsUnread",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}"
+      },
+      "id": "4ef016e1-e095-4616-9587-74a2f6c75cf1",
+      "name": "Gmail - Mark Unread",
+      "type": "n8n-nodes-base.gmailTool",
+      "position": [
+        832,
+        608
+      ],
+      "webhookId": "0a16a6f4-f36a-4774-9229-bd2a6ed30fde",
+      "typeVersion": 2.1,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "T38bpfZRuJpN5fRx",
+          "name": "Gmail account"
+        }
+      },
+      "notes": "👁️ MARK AS UNREAD\n\nMark emails as unread to ensure they get attention later. Useful for emails that need follow-up or further action.\n\nUse Cases:\n• \"Mark that important email as unread\"\n• \"I need to revisit this email later\"\n• \"Flag this message for follow-up\"\n\nBest Practices:\n• Use for emails requiring action\n• Combine with labels for better organization\n• Great for creating manual reminders"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}",
+        "labelIds": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Label_Names_or_IDs', ``, 'string') }}"
+      },
+      "id": "5c728669-60e4-4518-a021-aa6c02981ebf",
+      "name": "Gmail - Add Labels",
+      "type": "n8n-nodes-base.gmailTool",
+      "position": [
+        592,
+        608
+      ],
+      "webhookId": "d2ae386f-e833-4129-ad97-94e3b3bcb950",
+      "typeVersion": 2.1,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "T38bpfZRuJpN5fRx",
+          "name": "Gmail account"
+        }
+      },
+      "notes": "🏷️ ADD LABELS\n\nOrganize emails by adding labels for better categorization and workflow management.\n\nUse Cases:\n• \"Label this email as 'Important'\"\n• \"Add 'Project-X' label to recent emails\"\n• \"Categorize this as 'Follow-up Required'\"\n\nAI Parameters:\n• Message_ID: Target email ID\n• Label_Names_or_IDs: Labels to apply\n\nTip: Use descriptive labels for AI-driven organization"
+    },
+    {
+      "parameters": {
+        "operation": "markAsRead",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}"
+      },
+      "id": "9043caed-8da3-4dec-9025-bba4502323bd",
+      "name": "Gmail - Mark Read",
+      "type": "n8n-nodes-base.gmailTool",
+      "position": [
+        464,
+        608
+      ],
+      "webhookId": "4c54b980-dccb-47af-b9aa-672cc0cf687c",
+      "typeVersion": 2.1,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "T38bpfZRuJpN5fRx",
+          "name": "Gmail account"
+        }
+      },
+      "notes": "✅ MARK AS READ\n\nMark emails as read to maintain inbox organization and track processed messages.\n\nUse Cases:\n• \"Mark all emails from today as read\"\n• \"I've processed this email, mark it read\"\n• \"Clean up my unread messages\"\n\nAutomation Ideas:\n• Auto-mark newsletters as read\n• Mark processed support tickets\n• Bulk mark promotional emails"
+    },
+    {
+      "parameters": {
+        "operation": "removeLabels",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}",
+        "labelIds": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Label_Names_or_IDs', ``, 'string') }}"
+      },
+      "id": "de42ef35-d9bd-4705-8452-f13c3a6d3e89",
+      "name": "Gmail - Remove Labels",
+      "type": "n8n-nodes-base.gmailTool",
+      "position": [
+        944,
+        608
+      ],
+      "webhookId": "830a9b14-2bbe-4969-a3a9-fd76a8069339",
+      "typeVersion": 2.1,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "T38bpfZRuJpN5fRx",
+          "name": "Gmail account"
+        }
+      },
+      "notes": "🗑️ REMOVE LABELS\n\nRemove labels from emails to update categorization or clean up organization system.\n\nUse Cases:\n• \"Remove 'Urgent' label from this email\"\n• \"Clean up old project labels\"\n• \"Update email categorization\"\n\nAI Parameters:\n• Message_ID: Target email ID\n• Label_Names_or_IDs: Labels to remove\n\nWorkflow Tip: Combine with add labels for label migration"
+    },
+    {
+      "parameters": {
+        "path": "3f148a93-f8b9-4a84-9f87-299cb055de04"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2,
+      "position": [
+        560,
+        384
+      ],
+      "id": "7ae827b7-0fc5-43a7-8266-07120759eba5",
+      "name": "MCP Server Trigger",
+      "webhookId": "3f148a93-f8b9-4a84-9f87-299cb055de04"
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "http://localhost:5678/mcp/3f148a93-f8b9-4a84-9f87-299cb055de04"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        704,
+        48
+      ],
+      "id": "7d2fd0f0-b20c-4414-947d-1b60a10e7c42",
+      "name": "MCP Client"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Get Email": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Mark Read": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Add Labels": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Send Email": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Mark Unread": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Remove Labels": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "52bc9d52-8174-44ea-8f11-7e5d52498e3d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8707be5561da15d1b4c629faa0e4a9a6fdd4bfa66f8eb97220cf29c3050d7d3f"
+  },
+  "id": "YzfiJ49nDWSsigie",
+  "tags": []
+}
