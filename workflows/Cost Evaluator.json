@@ -1,0 +1,509 @@
+{
+  "name": "Cost Evaluator",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "c29b8d69-724f-40ab-9a0a-28f632310ad5",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        1904,
+        416
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Help me test something and output the text \"This is a test workflow\" after calling the think tool twice.",
+        "options": {}
+      },
+      "id": "41c7ef0f-05d6-4aca-a967-a7ef7f944ecd",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        2192,
+        416
+      ],
+      "typeVersion": 1.8
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $workflow.id }}"
+        },
+        "workflowInputs": {
+          "value": {
+            "execution_id": "={{ $execution.id }}"
+          },
+          "schema": [
+            {
+              "id": "execution_id",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "required": false,
+              "displayName": "execution_id",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            }
+          ],
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "execution_id"
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "id": "596b856b-4212-4d09-af13-fec92b774a08",
+      "name": "Call sub-workflow",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [
+        2640,
+        416
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {},
+      "id": "52b47e68-79f4-4431-bc62-998aa76e2a30",
+      "name": "Think",
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "position": [
+        2384,
+        656
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2e6b9daf-495c-44e3-a39e-40fc8e654eae",
+              "name": "execution_id",
+              "type": "number",
+              "value": "={{ $('When Executed by Another Workflow').item.json.execution_id }}"
+            },
+            {
+              "id": "1ba39074-c67e-453c-9a64-07e0376e64bf",
+              "name": "tokenUsage",
+              "type": "array",
+              "value": "={{$jmespath(\n  $json,\n  \"data.resultData.runData.*[] | [?data.ai_languageModel] | [].{model: data.ai_languageModel[0][0].json.response.generations[0][0].generationInfo.model_name || inputOverride.ai_languageModel[0][0].json.options.model_name || inputOverride.ai_languageModel[0][0].json.options.model, tokenUsage: data.ai_languageModel[0][0].json.tokenUsage || data.ai_languageModel[0][0].json.tokenUsageEstimate}\"\n)}}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "include": "selected",
+        "includeFields": "workflowData.id, workflowData.name",
+        "options": {}
+      },
+      "id": "8a2b0c1c-8af9-4b1b-a6e3-99e512db1a24",
+      "name": "Extract token usage data",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        2352,
+        1120
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "resource": "execution",
+        "operation": "get",
+        "executionId": "={{ $json.execution_id }}",
+        "options": {
+          "activeWorkflows": true
+        },
+        "requestOptions": {}
+      },
+      "id": "11cb1d4c-7e92-4cfa-aee0-020659fb0865",
+      "name": "Get execution data",
+      "type": "n8n-nodes-base.n8n",
+      "position": [
+        2128,
+        1120
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "n8nApi": {
+          "id": "7gA8TIF1NkKPDo2f",
+          "name": "n8n account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "execution_id"
+            }
+          ]
+        }
+      },
+      "id": "8fb7e50a-cdb9-416d-ab46-5b5ff8f83306",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        1904,
+        1120
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "tokenUsage",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "id": "dd619f28-c33f-475e-ab6c-8f8255189776",
+      "name": "Split Out",
+      "type": "n8n-nodes-base.splitOut",
+      "position": [
+        2560,
+        1120
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "sum",
+              "field": "tokenUsage.tokenUsage.promptTokens"
+            },
+            {
+              "aggregation": "sum",
+              "field": "tokenUsage.tokenUsage.completionTokens"
+            }
+          ]
+        },
+        "fieldsToSplitBy": "id, name, tokenUsage.model, execution_id",
+        "options": {}
+      },
+      "id": "0aed81ba-87de-42d3-9213-37e2ef1f452e",
+      "name": "Sum Token Totals - aggregate by model",
+      "type": "n8n-nodes-base.summarize",
+      "position": [
+        2768,
+        1120
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Ryk7DGnE7sQ4C1s2ZNb4uDpUToTF_IAsQl-NEKEoZfw",
+          "mode": "list",
+          "cachedResultName": "Cost Evaluator",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Ryk7DGnE7sQ4C1s2ZNb4uDpUToTF_IAsQl-NEKEoZfw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1c9CeePI6ebNnIKogyJKHUpDWT6UEowpH9OwVtViadyE/edit#gid=0",
+          "cachedResultName": "Executions"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "execution_id": "={{ $json.execution_id }}",
+            "id": "={{ $json.id }}",
+            "sum_tokenUsage_tokenUsage_completionTokens": "={{ $json.sum_tokenUsage_tokenUsage_completionTokens }}",
+            "sum_tokenUsage_tokenUsage_promptTokens": "={{ $json.sum_tokenUsage_tokenUsage_promptTokens }}",
+            "tokenUsage_model": "={{ $json.tokenUsage_model }}",
+            "name": "={{ $json.name }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "sum_tokenUsage_tokenUsage_promptTokens",
+              "displayName": "sum_tokenUsage_tokenUsage_promptTokens",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sum_tokenUsage_tokenUsage_completionTokens",
+              "displayName": "sum_tokenUsage_tokenUsage_completionTokens",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "execution_id",
+              "displayName": "execution_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tokenUsage_model",
+              "displayName": "tokenUsage_model",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "02a54cdc-06a9-4f06-a61c-62e539058eca",
+      "name": "Record token usage",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        2992,
+        1120
+      ],
+      "typeVersion": 4.6,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RGuqo5tt5vJQUa8L",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "12e085bc-4923-450b-aa71-94ff674d05b9",
+      "name": "Gemini",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [
+        2048,
+        656
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hlWfynPoTUC5vGcA",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-3-haiku-20240307",
+          "cachedResultName": "Claude Haiku 3"
+        },
+        "options": {}
+      },
+      "id": "a5b79396-094d-41f4-8fac-363b588bb5f8",
+      "name": "Anthropic",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "position": [
+        2208,
+        656
+      ],
+      "typeVersion": 1.3,
+      "credentials": {
+        "anthropicApi": {
+          "id": "KcZ6yYjEr6jQvHjr",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "id": "012417cc-8175-486e-9f46-7c2f8dc04447",
+      "name": "OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        2128,
+        656
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "JFV8h8FLMK6dxzrL",
+          "name": "OpenAi account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "execution_id": null
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Call sub-workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Sum Token Totals - aggregate by model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get execution data": {
+      "main": [
+        [
+          {
+            "node": "Extract token usage data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract token usage data": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Get execution data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sum Token Totals - aggregate by model": {
+      "main": [
+        [
+          {
+            "node": "Record token usage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini": {
+      "ai_languageModel": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c19cd365-72a4-42a9-a241-d07dd4913698",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8707be5561da15d1b4c629faa0e4a9a6fdd4bfa66f8eb97220cf29c3050d7d3f"
+  },
+  "id": "lhhOBY7MewyRRAWb",
+  "tags": []
+}
