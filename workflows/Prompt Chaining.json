@@ -1,0 +1,253 @@
+{
+  "name": "Prompt Chaining",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        544,
+        640
+      ],
+      "id": "011ded1a-cfc2-47f9-b70c-0c5816bded73",
+      "name": "4o mini",
+      "credentials": {
+        "openAiApi": {
+          "id": "JFV8h8FLMK6dxzrL",
+          "name": "OpenAi account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the topic to write a blog about: {{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "#Overview\nYou are an expert outline writer. Your job is to generate a structured outline for a blog post with section titles and key points."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        224,
+        384
+      ],
+      "id": "6d6ccdce-3fe3-4318-ad63-2c1ee4c14f2f",
+      "name": "Outline Writer"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the outline: \n\n{{ $json.output }}",
+        "options": {
+          "systemMessage": "=#Overview\nYou are an expert blog evaluator. Revise this outline and ensure it covers the following key criteria: \n\n(1) Engaging Introduction \n(2) Clear Section Breakdown\n(3) Logical Flow\n(4) Conclusion with Key Takeaways\n\n## Output\nOnly output the revised outline."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        544,
+        384
+      ],
+      "id": "572d79e5-71f3-457c-b0c7-57f6591e2c32",
+      "name": "Outline Evaluation"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here if the revised outline: {{ $json.output }}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are an expert blog writer. Generate a detailed blog post using the outline with well-structured paragraphs and engaging content.\n\nMake sure it is formatted really well according to google docs"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        880,
+        384
+      ],
+      "id": "123d518c-6403-435d-ad20-8435bf164519",
+      "name": "Blog Writer"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "https://docs.google.com/document/d/1JD6DsdLYr-2_Bm-_IQN6ZtPRn14I8mN246b01LB5F28/edit?tab=t.0",
+        "simple": false,
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{ $json.output }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        1232,
+        384
+      ],
+      "id": "913f4014-d422-4242-83ac-7fc36f642078",
+      "name": "Post to Docs",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "Qxl68vGBqLrBJmEl",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        32,
+        384
+      ],
+      "id": "9a81e716-940a-4271-9d07-c040ea7b7406",
+      "name": "When chat message received",
+      "webhookId": "8b5d17e6-9356-437e-a97a-4f4027e6451d"
+    },
+    {
+      "parameters": {
+        "modelName": "=models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        224,
+        640
+      ],
+      "id": "8406b5be-46ef-4da2-8473-b00b9273e764",
+      "name": "2.0 Flash",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hlWfynPoTUC5vGcA",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        880,
+        640
+      ],
+      "id": "cc01babe-6f2c-4344-8b60-11aa87dea0a2",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "31aez78aKSVIRTXS",
+          "name": "Groq account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "4o mini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Outline Evaluation",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outline Writer": {
+      "main": [
+        [
+          {
+            "node": "Outline Evaluation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outline Evaluation": {
+      "main": [
+        [
+          {
+            "node": "Blog Writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Blog Writer": {
+      "main": [
+        [
+          {
+            "node": "Post to Docs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Outline Writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2.0 Flash": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Outline Writer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Blog Writer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e015a991-a442-46a7-8636-b8d6e4778230",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8707be5561da15d1b4c629faa0e4a9a6fdd4bfa66f8eb97220cf29c3050d7d3f"
+  },
+  "id": "oGcqXKBygoIbmelu",
+  "tags": []
+}
