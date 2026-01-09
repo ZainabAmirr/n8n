@@ -1,0 +1,279 @@
+{
+  "name": "Human in loop 1",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "938f9bd1-c97f-4aff-a17c-b5e83f83d639",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1328,
+        224
+      ],
+      "id": "e6541751-2220-4677-821b-332b227bff8c",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=# Overview  \nYou are an AI agent responsible for creating Slack posts based on user requests.  \n\n## Instructions  \n1. Always use the wikipedia tool to find accurate, current information about the topic.  \n2. Write an informative, engaging post (up to 280 characters).  \n3. Include a brief reference to the source (e.g., \"via TechCrunch\", \"according to The Verge\") directly in the tweet.  \n4. Do not output anything except the final tweet.  \n\n## Tool\n- wikipedia: Use this for real-time web search. Must be used every time before creating the post.\n\n## Example\n1) Input: \"Create a post about NASA’s latest discovery.\"  \n2) Action: Search the web using wikipedia.\n3) Output: \"NASA just found signs of ancient riverbeds on Mars—suggesting the Red Planet may have once been home to life. Huge leap in space exploration 🌌 (via NASA) #Mars #SpaceNews\"  \n\n## Final Notes  \n- Avoid clickbait or speculation—stick to factual and sourced content.  \n- Use hashtags or emojis only when relevant to enhance visibility.  \n- Keep language friendly, concise, and informative.  \n- Never use an \"@\" symbol when referencing the source.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        768,
+        224
+      ],
+      "id": "9cfdbb4b-2db2-4138-8d44-3209d03440c2",
+      "name": "X_Post Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        480,
+        224
+      ],
+      "id": "56d23e15-e79e-471d-b69b-c40e895f1a11",
+      "name": "When chat message received",
+      "webhookId": "6e136dd3-511d-488d-aaa5-9da1f22b8f88"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C092YENH3EE",
+          "mode": "list",
+          "cachedResultName": "all-zigron"
+        },
+        "message": "=Do you approve?\n{{ $('X_Post Agent').item.json.output }}",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1152,
+        224
+      ],
+      "id": "94b20fc3-870b-4cc8-a191-380ba049401b",
+      "name": "Slack",
+      "webhookId": "528d3559-3d14-46d6-b7a4-6cb294bf5219",
+      "credentials": {
+        "slackApi": {
+          "id": "fG13Z6oyO7xfz1RY",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        640,
+        480
+      ],
+      "id": "5d19bda9-d1e7-4999-8427-3cf39eea24b5",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "JFV8h8FLMK6dxzrL",
+          "name": "OpenAi account 3"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolWikipedia",
+      "typeVersion": 1,
+      "position": [
+        880,
+        512
+      ],
+      "id": "540a0d48-8f7f-406e-92d3-23762549ef63",
+      "name": "Wikipedia"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C092YENH3EE",
+          "mode": "list",
+          "cachedResultName": "all-zigron"
+        },
+        "text": "=Your message has been approved! {{ $('X_Post Agent').item.json.output }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1552,
+        128
+      ],
+      "id": "3bfcd657-7a9e-451d-8010-05f991d1feb5",
+      "name": "Slack1",
+      "webhookId": "ca0476b2-9c68-46f0-9c70-af2b4b759fa1",
+      "credentials": {
+        "slackApi": {
+          "id": "fG13Z6oyO7xfz1RY",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C092YENH3EE",
+          "mode": "list",
+          "cachedResultName": "all-zigron"
+        },
+        "text": "Post was denied. Please submit another request.",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1552,
+        320
+      ],
+      "id": "011c3e95-80a8-43e7-a8ad-fe73b92f4b6e",
+      "name": "Slack2",
+      "webhookId": "96f6a855-59e5-4253-a793-f3348eb52297",
+      "credentials": {
+        "slackApi": {
+          "id": "fG13Z6oyO7xfz1RY",
+          "name": "Slack account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Slack1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Slack2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X_Post Agent": {
+      "main": [
+        [
+          {
+            "node": "Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "X_Post Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "X_Post Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wikipedia": {
+      "ai_tool": [
+        [
+          {
+            "node": "X_Post Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9a28b629-1726-47c8-aefd-fe2e3a9cd732",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8707be5561da15d1b4c629faa0e4a9a6fdd4bfa66f8eb97220cf29c3050d7d3f"
+  },
+  "id": "Eu1OIPEHeV9pdTpc",
+  "tags": []
+}
